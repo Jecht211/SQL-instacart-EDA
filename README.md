@@ -1,7 +1,7 @@
 # Instacart Market Basket, Customer Retention & Operations Analysis
 
 ## Project Overview
-This repository contains an exploratory data analysis (EDA) and operational case study of Instacart consumer purchasing patterns, traffic flows, and reorder dynamics. Leveraging a local PostgreSQL database, Python (`pandas`, `sqlalchemy`, `psycopg`), and interactive Plotly visualizations, this project uncovers the behavioral drivers behind grocery delivery logistics—highlighting key metrics like the **fixed ~10-item basket invariant** and the **100K product volume reorder stability threshold**.
+This repository contains an exploratory data analysis (EDA) and operational case study of Instacart consumer purchasing patterns, traffic flows, and reorder dynamics. Leveraging a local PostgreSQL database, Python (`pandas`, `sqlalchemy`, `psycopg`), and interactive Plotly visualizations. This project uncovers the behavioral drivers behind grocery delivery logistics, highlighting key metrics like the **fixed ~10-item basket invariant** and the **100K product volume reorder stability threshold**.
 
 * **Database:** PostgreSQL (pgAdmin 4)
 * **Python Stack:** `pandas`, `sqlalchemy`, `psycopg`, `python-dotenv`, `plotly`
@@ -31,7 +31,7 @@ The data is modeled as a 5-table relational database enforcing referential integ
 ### 1. Order Volume & Basket Size Distribution by Day of the Week
 Querying daily order volume (`df_dow`) alongside order-level item distributions (`df_box`, zoomed to a 0–35 item y-axis range to highlight core distributions) tested whether weekend demand spikes reflect larger stock-up baskets or higher customer traffic.
 * **Order Volume:** **Sunday and Monday** generate the highest volume at **~58K orders per day**, compared to **~44K orders per day** across the rest of the week.
-* **Basket Size Invariant:** Average basket size remains steady at **~10 items per order** across all seven days. Box-and-whisker distributions show minimal day-to-day variance: **Sunday and Saturday** tie for the slightly highest median, while extreme bulk outliers vary randomly (e.g., **Tuesday** reaches a max of **144 items** vs. **Sunday** at **99 items**, despite Sunday having the highest overall order volume). Early-week surges are driven by **higher active shopper traffic** rather than larger individual stock-up carts.
+* **Basket Size Invariant:** Average basket size remains steady at **~10 items per order** across all seven days. Box-and-whisker distributions show minimal day-to-day variance: **Sunday and Saturday** tie for the slightly highest median, while extreme bulk outliers vary randomly (e.g., **Tuesday** reaches a max of **144 items** vs. **Sunday** at **99 items**, despite Sunday having the highest overall order volume). Early week surges are driven by **higher active shopper traffic** rather than larger individual stock-up carts.
 
 ![Instacart Order Volume by Day of the Week](visualizations/dow_order_volume.png)
 ![Basket Size Distribution by Day of the Week](visualizations/basket_size_boxplot.png)
@@ -39,7 +39,7 @@ Querying daily order volume (`df_dow`) alongside order-level item distributions 
 ---
 
 ### 2. Hourly Traffic Curves & Multi-Day Staffing Patterns
-To support shopper labor scheduling, total order volume was plotted across a 24-hour cycle (`df_hourly`) and segmented across all seven days of the week (`df_hourly_dow`) using chronologically ordered multi-line curves.
+To support shopper labor scheduling, total order volume was plotted across a 24-hour cycle (`df_hourly`) and segmented across all seven days of the week (`df_hourly_dow`) using chronologically ordered multiple line chart.
 * **Finding:** While orders occur during every hour of the day, volume drops into a deep valley between **1:00 AM and 5:00 AM**, climbs steadily starting at **6:00 AM**, holds a sustained daytime plateau from **9:00 AM to 4:00 PM**, and declines steadily back toward the 1:00 AM trough. Segmenting by day of the week shows that **all seven days follow this identical curve**, simply scaling up to higher daytime peaks on **Sunday and Monday**.
 
 ![Instacart Order Volume by Hour of the Day](visualizations/hourly_order_volume.png)
@@ -49,7 +49,7 @@ To support shopper labor scheduling, total order volume was plotted across a 24-
 
 ### 3. Department Reorder Rates
 Aggregating purchase volume against reorder flags across all 21 store departments (`df_dept`) separated habitual replenishment categories from occasional purchases.
-* **Finding:** Department-level reorder rates are largely driven by **shelf life and consumption speed**. Perishable, fast-depleting categories—led by **`dairy eggs`**, **`beverages`**, and **`produce`**—rank highest in repeat purchases because they spoil quickly or are consumed daily, whereas slower-turning categories (`personal care`, `household`, `pantry`) see far lower reorder rates.
+* **Finding:** Department level reorder rates are largely driven by **shelf life and consumption speed**. Perishable, fast-depleting categories, led by **`dairy eggs`**, **`beverages`**, and **`produce`**, rank highest in repeat purchases because they spoil quickly or are consumed daily, whereas slower-turning categories (`personal care`, `household`, `pantry`) see far lower reorder rates.
 
 ![Department Reorder Rates](visualizations/department_reorders.png)
 
@@ -72,12 +72,11 @@ Splitting departments down to the top 100 individual products (`df_products`, co
 
 ## Repository Structure
 ```text
-├── notebooks/                  # Python EDA notebooks (SQLAlchemy + Plotly visualizations)
-├── sql/
-│   ├── 01_schema_and_etl.sql   # Table creation, constraints, and staging import script
-│   ├── 02_analysis_queries.sql # Operations, retention, department, and window function queries
-│   └── SQL_ANALYSIS.md         # Detailed SQL documentation and query breakdown
-├── visualizations/             # Exported Plotly chart images (.png)
+├── Graph 6-.png                # Average Basket Size Box-and-Whisker plot for each day of the week
+├── Graphs 1-3.png              # Daily order volume, Department Reorder Rates, and Reorder Rate Scatterplot
+├── Graphs 4-5.png              # Instacart Order Volume by Hour of the Day and Hourly day of the week Order Volume curves
+├── instacart_analytics.ipynb   # Python EDA notebook (SQLAlchemy + Plotly visualizations)
+├── SQL_queries.md              # Detailed SQL schema, ETL setup, and query documentation
 ├── .env.example                # Template for PostgreSQL connection environment variables
 ├── .gitignore                  # Excludes .env credentials and raw Kaggle CSV files
 └── README.md                   # Executive project summary (main landing page)
