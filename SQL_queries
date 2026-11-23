@@ -10,6 +10,7 @@ An end-to-end SQL analysis of the Instacart Online Grocery Shopping dataset desi
 ---
 
 ## Database Schema & Architecture
+The raw dataset is sourced from https://www.kaggle.com/datasets/psparks/instacart-market-basket-analysis *(excluded from this repository due to file size limits)*.
 The dataset is modeled as a 5-table relational database enforcing referential integrity across departments, aisles, products, customer orders, and line-item transactions.
 
 | Table Name | Description | Primary Key | Foreign Keys |
