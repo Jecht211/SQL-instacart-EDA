@@ -1,0 +1,11 @@
+# Python & Jupyter
+__pycache__/
+.ipynb_checkpoints/
+.env
+
+# Database backups & local files
+*.db
+*.sqlite
+
+# OS generated files
+.DS_Store
