@@ -10,7 +10,8 @@ An end-to-end SQL analysis of the Instacart Online Grocery Shopping dataset desi
 ---
 
 ## Database Schema & Architecture
-The raw dataset is sourced from https://www.kaggle.com/datasets/psparks/instacart-market-basket-analysis *(excluded from this repository due to file size limits)*.
+The raw dataset is sourced from the [Instacart Market Basket Analysis dataset on Kaggle](https://kaggle.com) *(excluded from this repository due to file size limits)*.
+
 The dataset is modeled as a 5-table relational database enforcing referential integrity across departments, aisles, products, customer orders, and line-item transactions.
 
 | Table Name | Description | Primary Key | Foreign Keys |
@@ -50,24 +51,28 @@ FROM orders
 GROUP BY order_dow, order_hour_of_day
 ORDER BY order_dow, order_hour_of_day;
 ```
-"order_dow"	"order_hour_of_day"	"total_orders"	"recommended_staffing_tier"
-0	0	3936	"Low Staffing (Off-Peak)"
-0	1	2398	"Low Staffing (Off-Peak)"
-0	2	1409	"Low Staffing (Off-Peak)"
-0	3	963	"Low Staffing (Off-Peak)"
-0	4	813	"Low Staffing (Off-Peak)"
-0	5	1168	"Low Staffing (Off-Peak)"
-0	6	3329	"Low Staffing (Off-Peak)"
-0	7	12410	"Moderate Staffing"
-0	8	28108	"High Staffing (Peak)"
-0	9	40798	"High Staffing (Peak)"
 
-**Finding:** Largely high staffing by these metrics from 8am to 7pm with moderate staffing for 7am and 8pm to 10pm with the rest being low staffing needs. Overall orders pick up quickly and plateau and fall off over a three hours instead of one.
+**Sample Output (Sunday, Hours 0–9):**
+
+| `order_dow` | `order_hour_of_day` | `total_orders` | `recommended_staffing_tier` |
+| :---: | :---: | :---: | :--- |
+| 0 | 0 | 3,936 | Low Staffing (Off-Peak) |
+| 0 | 1 | 2,398 | Low Staffing (Off-Peak) |
+| 0 | 2 | 1,409 | Low Staffing (Off-Peak) |
+| 0 | 3 | 963 | Low Staffing (Off-Peak) |
+| 0 | 4 | 813 | Low Staffing (Off-Peak) |
+| 0 | 5 | 1,168 | Low Staffing (Off-Peak) |
+| 0 | 6 | 3,329 | Low Staffing (Off-Peak) |
+| 0 | 7 | 12,410 | Moderate Staffing |
+| 0 | 8 | 28,108 | High Staffing (Peak) |
+| 0 | 9 | 40,798 | High Staffing (Peak) |
+
+**Finding:** High staffing demand runs largely from **8:00 AM to 7:00 PM**, with moderate staffing needed at **7:00 AM** and **8:00 PM – 10:00 PM**, and low staffing overnight. Rather than spiking for a single hour, order volume climbs rapidly, holds a sustained daytime plateau, and tapers off gradually over a three-hour wind-down window.
 
 ---
 
 ### 2. When do customers engage in "stock-up" shopping vs. quick fill-in trips?
-**Approach:** Combined order-level basket counts grouped by day of the week with a daily summary query (`COUNT DISTINCT` orders vs. total items sold) to analyze both overall daily averages and individual order-size distributions.
+**Approach:** Combined a daily summary query (`COUNT DISTINCT` orders vs. total items sold) with an order-level basket query grouped by day of the week to analyze both overall daily averages and individual order-size distributions.
 
 ```sql
 -- Daily Summary: Stock-Up Shopping Behavior by Day of Week
@@ -80,16 +85,21 @@ FROM order_products op
 JOIN orders o ON op.order_id = o.order_id
 GROUP BY o.order_dow
 ORDER BY o.order_dow;
+```
 
-"order_dow"	"total_orders"	"total_items_sold"	"avg_basket_size"
-0	585237	6533692	11.16
-1	576377	5871834	10.19
-2	458074	4378360	9.56
-3	428087	3998498	9.34
-4	417171	3942696	9.45
-5	443388	4386443	9.89
-6	437749	4707583	10.75
+**Query Output:**
 
+| `order_dow` | `total_orders` | `total_items_sold` | `avg_basket_size` |
+| :---: | :---: | :---: | :---: |
+| 0 (Sun) | 585,237 | 6,533,692 | 11.16 |
+| 1 (Mon) | 576,377 | 5,871,834 | 10.19 |
+| 2 (Tue) | 458,074 | 4,378,360 | 9.56 |
+| 3 (Wed) | 428,087 | 3,998,498 | 9.34 |
+| 4 (Thu) | 417,171 | 3,942,696 | 9.45 |
+| 5 (Fri) | 443,388 | 4,386,443 | 9.89 |
+| 6 (Sat) | 437,749 | 4,707,583 | 10.75 |
+
+```sql
 -- Granular Distribution: Item Count per Order Grouped by Day of Week
 SELECT 
     o.order_id,
@@ -100,7 +110,7 @@ JOIN orders o ON op.order_id = o.order_id
 GROUP BY o.order_id, o.order_dow;
 ```
 
-**Finding:** Average basket size doesn't change much by specific days with no visible trend. Average basket size for all days is around 10 items.
+**Finding:** Average basket size remains remarkably consistent across all seven days at **~10 items per order** (ranging only from **9.34** on Wednesday to **11.16** on Sunday), showing that early-week spikes are driven by higher active order counts rather than dramatically larger stock-up baskets.
 
 ---
 
@@ -120,24 +130,28 @@ HAVING COUNT(op.order_id) > 1000
 ORDER BY retention_rate_pct DESC
 LIMIT 15;
 ```
-"product_name"	"total_purchases"	"total_reorders"	"retention_rate_pct"
-"Half And Half Ultra Pasteurized"	2995	2580	86.14
-"Whole Organic Omega 3 Milk"	9410	8091	85.98
-"Organic Lactose Free Whole Milk"	8742	7511	85.92
-"Organic Homogenized Whole Milk"	4095	3514	85.81
-"Ultra-Purified Water"	1524	1306	85.70
-"Milk, Organic, Vitamin D"	20770	17753	85.47
-"Organic Reduced Fat Milk"	36869	31394	85.15
-"Goat Milk"	5353	4551	85.02
-"Banana"	491291	415166	84.51
-"Organic Lowfat 1% Milk"	15352	12914	84.12
-"Organic  Whole Milk"	10102	8494	84.08
-"Organic Reduced Fat Omega-3 Milk"	5299	4445	83.88
-"Lowfat Goat Milk"	1198	1004	83.81
-"Organic Low Fat Milk"	8806	7376	83.76
-"Organic Milk Reduced Fat, 2% Milkfat"	13119	10984	83.73
 
-**Finding:** Low shelf life and with usage rates dominate the top reorder rates, specifically drinks, dairy and some fruits.
+**Top 15 High-Retention Products:**
+
+| `product_name` | `total_purchases` | `total_reorders` | `retention_rate_pct` |
+| :--- | :---: | :---: | :---: |
+| Half And Half Ultra Pasteurized | 2,995 | 2,580 | 86.14% |
+| Whole Organic Omega 3 Milk | 9,410 | 8,091 | 85.98% |
+| Organic Lactose Free Whole Milk | 8,742 | 7,511 | 85.92% |
+| Organic Homogenized Whole Milk | 4,095 | 3,514 | 85.81% |
+| Ultra-Purified Water | 1,524 | 1,306 | 85.70% |
+| Milk, Organic, Vitamin D | 20,770 | 17,753 | 85.47% |
+| Organic Reduced Fat Milk | 36,869 | 31,394 | 85.15% |
+| Goat Milk | 5,353 | 4,551 | 85.02% |
+| Banana | 491,291 | 415,166 | 84.51% |
+| Organic Lowfat 1% Milk | 15,352 | 12,914 | 84.12% |
+| Organic Whole Milk | 10,102 | 8,494 | 84.08% |
+| Organic Reduced Fat Omega-3 Milk | 5,299 | 4,445 | 83.88% |
+| Lowfat Goat Milk | 1,198 | 1,004 | 83.81% |
+| Organic Low Fat Milk | 8,806 | 7,376 | 83.76% |
+| Organic Milk Reduced Fat, 2% Milkfat | 13,119 | 10,984 | 83.73% |
+
+**Finding:** Products with short shelf lives and high daily consumption rates dominate top reorder percentages—specifically **milk/dairy**, **beverages**, and **fresh produce** (with **Bananas** standing out at **491,291 purchases** and an **84.51%** reorder rate).
 
 ---
 
@@ -162,21 +176,10 @@ FROM RankedProducts
 WHERE rank <= 3;
 ```
 
-**Finding:** High use items dominate the list for each category as one would expect, such as toilet paper for household department.
+**Finding:** Essential, high-use staples dominate the top 3 rankings within every store category (such as **toilet paper** leading the `household` department).
 
 ---
 
 ## Summary of Insights & Recommendations
-* **Workforce Optimization:** Align picker/driver shift schedules with the hourly staffing tier matrix—ramping up capacity during late-morning to mid-afternoon peak windows on Sundays and Mondays while scaling down during off-peak overnight hours.
-* **Stock-Up vs. Fill-In Promotions:** Target weekend stock-up shoppers with bulk bundle discounts and minimum-spend promotions, while using mid-week push notifications to capture quick fill-in orders.
-* **Retention & Merchandising:** Surface high-retention staple SKUs (`>1,000` orders and top reorder rates) and top-3 department leaders in "Buy It Again" checkout prompts to streamline repeat ordering.
-
----
-
-## Repository Structure
-```text
-├── sql/
-│   ├── 01_schema_and_etl.sql   # Table creation, constraints, and staging import script
-│   └── 02_analysis_queries.sql # Operations, retention, department, and window function queries
-├── visualizations/             # Screenshots of query results, boxplots, or ERD
-└── README.md                   # Project documentation
+* **Workforce Optimization:** Align picker and driver shift schedules with the hourly staffing tier matrix—ramping up capacity during the **8:00 AM – 7:00 PM** high-demand plateau on **Sundays and Mondays** while scaling down during overnight off-peak hours.
+* **Traffic-Driven Promotions:** Because average basket size holds steady around **~10 items** regardless of day, focus promotions on driving **order frequency** (mid-week re-engagement prompts) rather than expecting larger weekend stock-up carts.
